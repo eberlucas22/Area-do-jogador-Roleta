@@ -100,10 +100,19 @@ function AuthForm() {
     setLoading(true)
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+    const whatsappE164 = "+55" + whatsapp.replace(/\D/g, "")
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${siteUrl}/auth/callback` },
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+        data: {
+          full_name: fullName.trim(),
+          whatsapp: whatsappE164,
+          marketing_opt_in: marketingOptIn,
+          accepted_terms: "true",
+        },
+      },
     })
 
     if (error) {
@@ -114,18 +123,6 @@ function AuthForm() {
       }
       setLoading(false)
       return
-    }
-
-    const userId = data.user?.id
-    if (userId) {
-      const whatsappE164 = "+55" + whatsapp.replace(/\D/g, "")
-      await supabase.from("profiles").upsert({
-        id: userId,
-        full_name: fullName.trim(),
-        whatsapp: whatsappE164,
-        marketing_opt_in: marketingOptIn,
-        accepted_terms_at: new Date().toISOString(),
-      })
     }
 
     // If session is null, email confirmation is required
