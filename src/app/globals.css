@@ -94,9 +94,13 @@
   --shadow-glow:  0 0 32px rgba(139,47,212,0.50);
 
   /* ── Z-index ──────────────────────────────────────────────── */
-  --z-overlay: 40;
-  --z-modal:   50;
-  --z-toast:   70;
+  --z-content:  10;   /* banners, carrossel */
+  --z-header:   40;   /* header sticky */
+  --z-nav:      50;   /* bottom nav mobile */
+  --z-dropdown: 50;   /* menus dropdown */
+  --z-overlay:  60;   /* backdrop modal */
+  --z-modal:    61;   /* sheet/modal */
+  --z-toast:    70;   /* toasts */
 }
 
 /* ── Tailwind theme extension ──────────────────────────────── */

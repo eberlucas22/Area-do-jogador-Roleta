@@ -29,6 +29,7 @@ const supabase = createClient()
 type GestaoRow = {
   id: string
   device_id: string
+  user_id?: string | null
   initial_amount: number
   days: CycleDay[]
   is_active: boolean
@@ -234,19 +235,72 @@ export function BancaModule() {
   useEffect(() => {
     const did = deviceId
     if (!did) return
-    Promise.all([
-      supabase.from("settings").select("stop_win_pct,stop_loss_pct").single(),
-      supabase.from("gestao_cycles").select("id,device_id,user_id,initial_amount,days,is_active,started_at")
-        .eq("device_id", did).eq("is_active", true)
-        .order("started_at", { ascending: false }).limit(1).maybeSingle(),
-    ]).then(([settRes, cycleRes]) => {
+
+    async function init() {
+      const [settRes, { data: { user } }] = await Promise.all([
+        supabase.from("settings").select("stop_win_pct,stop_loss_pct").single(),
+        supabase.auth.getUser(),
+      ])
+
       if (settRes.data) setSettings({ stop_win_pct: settRes.data.stop_win_pct, stop_loss_pct: settRes.data.stop_loss_pct })
-      setCycle(cycleRes.data ?? null)
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) supabase.from("gestao_cycles").update({ user_id: user.id })
-          .eq("device_id", did).is("user_id", null).then(() => {})
-      })
-    })
+
+      if (user) {
+        // Logged in: look for an active cycle owned by this user
+        const { data: userCycle } = await supabase
+          .from("gestao_cycles")
+          .select("id,device_id,user_id,initial_amount,days,is_active,started_at")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (userCycle) {
+          // Close any orphan cycle on this device (different cycle)
+          const { data: orphan } = await supabase
+            .from("gestao_cycles")
+            .select("id")
+            .eq("device_id", did)
+            .is("user_id", null)
+            .eq("is_active", true)
+            .maybeSingle()
+          if (orphan) {
+            await supabase.from("gestao_cycles").update({ is_active: false }).eq("id", orphan.id)
+          }
+          setCycle(userCycle)
+        } else {
+          // No user cycle — check for orphan on this device and migrate
+          const { data: orphan } = await supabase
+            .from("gestao_cycles")
+            .select("id,device_id,user_id,initial_amount,days,is_active,started_at")
+            .eq("device_id", did)
+            .is("user_id", null)
+            .eq("is_active", true)
+            .order("started_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (orphan) {
+            await supabase.from("gestao_cycles").update({ user_id: user.id }).eq("id", orphan.id)
+            setCycle({ ...orphan, user_id: user.id })
+          } else {
+            setCycle(null)
+          }
+        }
+      } else {
+        // Not logged in: legacy fallback by device_id
+        const { data: deviceCycle } = await supabase
+          .from("gestao_cycles")
+          .select("id,device_id,user_id,initial_amount,days,is_active,started_at")
+          .eq("device_id", did)
+          .eq("is_active", true)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        setCycle(deviceCycle ?? null)
+      }
+    }
+
+    init()
   }, [deviceId])
 
   // ── Start cycle ────────────────────────────────────────────────────────
@@ -255,8 +309,11 @@ export function BancaModule() {
     if (isNaN(amount) || amount <= 0 || !deviceId) return
     setSaving(true)
     const days = deriveDays(amount, generateDays(), settings)
+    const { data: { user } } = await supabase.auth.getUser()
+    const insertData: Record<string, unknown> = { device_id: deviceId, initial_amount: amount, days }
+    if (user) insertData.user_id = user.id
     const { data } = await supabase.from("gestao_cycles")
-      .insert({ device_id: deviceId, initial_amount: amount, days }).select("id,device_id,user_id,initial_amount,days,is_active,started_at").single()
+      .insert(insertData).select("id,device_id,user_id,initial_amount,days,is_active,started_at").single()
     setCycle(data ?? null); setSetupAmount(""); setSaving(false)
   }
 

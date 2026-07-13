@@ -9,11 +9,17 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 function maskWhatsApp(v: string): string {
-  const d = v.replace(/\D/g, "").slice(0, 13)
-  if (d.length <= 2) return d.length ? `+${d}` : ""
-  if (d.length <= 4) return `+${d.slice(0, 2)} (${d.slice(2)}`
-  if (d.length <= 9) return `+${d.slice(0, 2)} (${d.slice(2, 4)}) ${d.slice(4)}`
-  return `+${d.slice(0, 2)} (${d.slice(2, 4)}) ${d.slice(4, 9)}-${d.slice(9)}`
+  const d = v.replace(/\D/g, "").slice(0, 11)
+  if (d.length === 0) return ""
+  if (d.length <= 2) return `(${d}`
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
+function isValidWhatsApp(v: string): boolean {
+  const digits = v.replace(/\D/g, "")
+  return digits.length >= 10 && digits.length <= 11
 }
 
 interface Profile {
@@ -59,7 +65,11 @@ export default function PerfilPage() {
 
       if (data) {
         setFullName(data.full_name ?? "")
-        setWhatsapp(data.whatsapp ?? "")
+        // Convert stored E.164 (+5511...) to national display format
+        const raw = data.whatsapp ?? ""
+        const digits = raw.replace(/\D/g, "")
+        const national = digits.startsWith("55") && digits.length >= 12 ? digits.slice(2) : digits
+        setWhatsapp(maskWhatsApp(national))
         setMarketingOptIn(data.marketing_opt_in ?? false)
       }
       setLoading(false)
@@ -69,14 +79,19 @@ export default function PerfilPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    if (whatsapp && !isValidWhatsApp(whatsapp)) {
+      showToast("DDD + número inválido. Ex: (11) 99999-9999", "error")
+      return
+    }
     setSaving(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const whatsappE164 = whatsapp ? "+55" + whatsapp.replace(/\D/g, "") : ""
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName.trim(), whatsapp, marketing_opt_in: marketingOptIn })
+      .update({ full_name: fullName.trim(), whatsapp: whatsappE164, marketing_opt_in: marketingOptIn })
       .eq("id", user.id)
 
     setSaving(false)
@@ -165,7 +180,7 @@ export default function PerfilPage() {
                 type="tel"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(maskWhatsApp(e.target.value))}
-                placeholder="+55 (11) 99999-9999"
+                placeholder="(11) 99999-9999"
                 style={inputStyle}
                 autoComplete="tel"
               />

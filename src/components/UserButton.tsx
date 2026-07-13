@@ -9,7 +9,10 @@ export function UserButton() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<{ full_name?: string } | null>(null)
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  // Coords for the fixed dropdown (calculated on open)
+  const [dropPos, setDropPos] = useState<{ top: number; right: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -27,10 +30,10 @@ export function UserButton() {
     })
   }, [])
 
-  // Fechar ao clicar fora
+  // Close on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
@@ -43,6 +46,17 @@ export function UserButton() {
   const displayName = profile?.full_name ?? user.email ?? ""
   const initial = displayName.charAt(0).toUpperCase()
 
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setDropPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      })
+    }
+    setOpen((v) => !v)
+  }
+
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -50,9 +64,10 @@ export function UserButton() {
   }
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={containerRef} style={{ position: "relative" }}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={btnRef}
+        onClick={handleToggle}
         title={displayName}
         style={{
           width: "32px",
@@ -73,18 +88,20 @@ export function UserButton() {
         {initial}
       </button>
 
-      {open && (
+      {open && dropPos && (
+        // position: fixed takes the dropdown out of the header stacking context
+        // and lets it appear above all page content
         <div
           style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            right: 0,
+            position: "fixed",
+            top: dropPos.top,
+            right: dropPos.right,
             width: "180px",
             backgroundColor: "var(--bg-card)",
             border: "1px solid var(--border-subtle)",
             borderRadius: "12px",
             padding: "6px",
-            zIndex: 100,
+            zIndex: 200,
             boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
           }}
         >

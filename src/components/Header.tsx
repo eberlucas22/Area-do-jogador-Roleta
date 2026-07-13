@@ -30,7 +30,6 @@ export function Header({ config }: HeaderProps) {
         borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "1px solid transparent",
         transition: "background-color 250ms, border-color 250ms",
         flexShrink: 0,
-        overflow: "hidden",
       }}
     >
       <Link
