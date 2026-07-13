@@ -55,7 +55,7 @@ function AuthForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { showToast } = useToast()
-  const nextUrl = searchParams.get("next") ?? `/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "afiliado"}/banca`
+  const nextUrl = searchParams.get("next") ?? `/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "rick-roleta"}/banca`
 
   const [tab, setTab] = useState<"register" | "login">("register")
   const [loading, setLoading] = useState(false)
