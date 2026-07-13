@@ -31,6 +31,17 @@ export default async function AdminUsuariosPage() {
     (profilesResult.data ?? []).map((p: ProfileRow) => [p.id, p])
   )
 
+  if (authResult.error) {
+    return (
+      <div style={{ padding: "24px 20px" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: 900, color: "var(--text-primary)", marginBottom: "12px" }}>Usuários</h1>
+        <div style={{ padding: "16px", borderRadius: "10px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", fontSize: "13px" }}>
+          <strong>Erro ao buscar usuários:</strong> {authResult.error.message}
+        </div>
+      </div>
+    )
+  }
+
   const users = (authResult.data?.users ?? []).map((u) => ({
     id: u.id,
     email: u.email ?? "",
