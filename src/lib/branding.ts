@@ -5,12 +5,14 @@ export interface BrandingData {
   logoUrl: string | null
   logoCompactUrl: string | null
   appName: string
+  logoHeightPx: number
 }
 
 const DEFAULTS: BrandingData = {
   logoUrl: null,
   logoCompactUrl: null,
   appName: process.env.NEXT_PUBLIC_AFFILIATE_NAME ?? "Área do Jogador",
+  logoHeightPx: 40,
 }
 
 export async function fetchBranding(): Promise<BrandingData> {
@@ -19,7 +21,7 @@ export async function fetchBranding(): Promise<BrandingData> {
     const supabase = await createClient()
     const { data } = await supabase
       .from("settings")
-      .select("logo_path,logo_compact_path,app_name")
+      .select("logo_path,logo_compact_path,app_name,logo_height_px")
       .limit(1)
       .single()
 
@@ -36,6 +38,7 @@ export async function fetchBranding(): Promise<BrandingData> {
       logoUrl,
       logoCompactUrl,
       appName: data.app_name || process.env.NEXT_PUBLIC_AFFILIATE_NAME || "Área do Jogador",
+      logoHeightPx: data.logo_height_px ?? 40,
     }
   } catch {
     return DEFAULTS

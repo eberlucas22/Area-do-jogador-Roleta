@@ -89,6 +89,7 @@ export default function AdminConfiguracoesPage() {
   const [logoPath, setLogoPath] = useState<string | null>(null)
   const [logoCompactPath, setLogoCompactPath] = useState<string | null>(null)
   const [appName, setAppName] = useState(DEFAULT_NAME)
+  const [logoHeight, setLogoHeight] = useState(40)
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null)
   const [logoCompactPreviewUrl, setLogoCompactPreviewUrl] = useState<string | null>(null)
   const [brandingSaving, setBrandingSaving] = useState(false)
@@ -109,7 +110,7 @@ export default function AdminConfiguracoesPage() {
   useEffect(() => {
     supabase
       .from("settings")
-      .select("stop_win_pct,stop_loss_pct,logo_path,logo_compact_path,app_name")
+      .select("stop_win_pct,stop_loss_pct,logo_path,logo_compact_path,app_name,logo_height_px")
       .limit(1)
       .single()
       .then(({ data }) => {
@@ -117,6 +118,7 @@ export default function AdminConfiguracoesPage() {
           setStopWin(String(data.stop_win_pct))
           setStopLoss(String(data.stop_loss_pct))
           setAppName(data.app_name || DEFAULT_NAME)
+          setLogoHeight(data.logo_height_px ?? 40)
           if (data.logo_path) {
             setLogoPath(data.logo_path)
             setLogoPreviewUrl(getPublicUrl(data.logo_path))
@@ -206,7 +208,7 @@ export default function AdminConfiguracoesPage() {
     setBrandingSaving(true)
     const { error: err } = await supabase
       .from("settings")
-      .update({ app_name: appName.trim() })
+      .update({ app_name: appName.trim(), logo_height_px: logoHeight })
       .gte("id", 0)
     if (err) { setBrandingError(err.message) }
     else { setBrandingSaved(true); setTimeout(() => setBrandingSaved(false), 2500) }
@@ -367,7 +369,7 @@ export default function AdminConfiguracoesPage() {
             <img
               src={logoPreviewUrl ?? DEFAULT_LOGO}
               alt="preview"
-              style={{ height: "28px", width: "auto", maxWidth: "140px", objectFit: "contain" }}
+              style={{ height: `${logoHeight}px`, maxHeight: "52px", width: "auto", maxWidth: "200px", objectFit: "contain" }}
             />
             <span style={{ fontSize: "11px", color: "var(--text-muted)", marginLeft: "auto" }}>
               {appName}
@@ -408,6 +410,29 @@ export default function AdminConfiguracoesPage() {
                 ✓ Logo carregada
               </span>
             )}
+          </div>
+        </div>
+
+        {/* Tamanho da logo */}
+        <div>
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "4px" }}>
+            Tamanho da logo no header — <span style={{ color: "var(--brand-secondary)" }}>{logoHeight}px</span>
+          </label>
+          <p style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "10px" }}>
+            Arraste para ajustar. O preview acima atualiza em tempo real.
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>Menor</span>
+            <input
+              type="range"
+              min={20}
+              max={52}
+              step={2}
+              value={logoHeight}
+              onChange={(e) => setLogoHeight(Number(e.target.value))}
+              style={{ flex: 1, accentColor: "var(--brand-primary)", cursor: "pointer" }}
+            />
+            <span style={{ fontSize: "11px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>Maior</span>
           </div>
         </div>
 

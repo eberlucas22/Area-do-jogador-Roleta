@@ -25,19 +25,18 @@ interface AppLogoProps {
  *  compact — 36×36px
  */
 export function AppLogo({ variant }: AppLogoProps) {
-  const { logoUrl, appName } = useBranding()
+  const { logoUrl, appName, logoHeightPx } = useBranding()
   const src = logoUrl ?? FALLBACK
 
   if (variant === "header") {
     return (
-      // overflow:hidden no pai (Link em Header.tsx) garante que nada vaze
-      // max-height garante que a imagem NÃO empurra o header de 56px fixo
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={appName}
         style={{
-          maxHeight: "46px",
+          height: `${logoHeightPx}px`,
+          maxHeight: "52px",
           width: "auto",
           maxWidth: "480px",
           objectFit: "contain",

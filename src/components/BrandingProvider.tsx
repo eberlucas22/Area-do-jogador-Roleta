@@ -7,6 +7,7 @@ const BrandingContext = createContext<BrandingData>({
   logoUrl: null,
   logoCompactUrl: null,
   appName: "Área do Jogador",
+  logoHeightPx: 40,
 })
 
 export function BrandingProvider({
