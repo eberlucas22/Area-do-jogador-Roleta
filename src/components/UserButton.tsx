@@ -110,23 +110,6 @@ export function UserButton() {
           </p>
           <hr style={{ border: "none", borderTop: "1px solid var(--border-subtle)", margin: "4px 0" }} />
           <button
-            onClick={() => { setOpen(false); router.push("/perfil") }}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "8px 10px",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              backgroundColor: "transparent",
-              color: "var(--text-secondary)",
-              fontSize: "13px",
-              textAlign: "left",
-            }}
-          >
-            Meus dados
-          </button>
-          <button
             onClick={handleSignOut}
             style={{
               display: "block",
