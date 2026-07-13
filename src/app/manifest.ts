@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next"
 
 export const dynamic = "force-dynamic"
 
-const DEFAULT_ICON = "/banners/logo-rick.png"
-const DEFAULT_NAME = "Rick Roleta"
+const DEFAULT_ICON = "/banners/logo.png"
+const DEFAULT_NAME = process.env.NEXT_PUBLIC_AFFILIATE_NAME ?? "Área do Jogador"
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   let appName = DEFAULT_NAME
@@ -29,7 +29,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     name: `Área do Jogador · ${appName}`,
     short_name: appName,
     description: "Área exclusiva do jogador +18",
-    start_url: "/rick-roleta",
+    start_url: `/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "afiliado"}`,
     display: "standalone",
     background_color: "#080010",
     theme_color: "#080010",

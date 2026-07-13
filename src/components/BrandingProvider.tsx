@@ -6,7 +6,7 @@ import type { BrandingData } from "@/lib/branding"
 const BrandingContext = createContext<BrandingData>({
   logoUrl: null,
   logoCompactUrl: null,
-  appName: "Rick Roleta",
+  appName: "Área do Jogador",
 })
 
 export function BrandingProvider({

@@ -43,7 +43,7 @@ export function AdminSidebar() {
         <div className="p-4 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <AppLogo variant="compact" />
           <div>
-            <p className="text-xs font-black" style={{ color: "var(--text-primary)" }}>Rick Roleta</p>
+            <p className="text-xs font-black" style={{ color: "var(--text-primary)" }}>{process.env.NEXT_PUBLIC_AFFILIATE_NAME ?? "Área do Jogador"}</p>
             <p className="text-xs" style={{ color: "var(--brand-primary)" }}>Admin</p>
           </div>
         </div>

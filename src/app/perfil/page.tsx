@@ -28,7 +28,7 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [email, setEmail] = useState("")
-  const [backHref, setBackHref] = useState("/rick-roleta/banca")
+  const [backHref, setBackHref] = useState(`/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "afiliado"}/banca`)
 
   const [fullName, setFullName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
@@ -44,7 +44,7 @@ export default function PerfilPage() {
 
       // Try to derive back href from referrer or default
       const ref = document.referrer
-      if (ref && ref.includes("/rick-roleta")) {
+      if (ref && ref.includes(`/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "afiliado"}`)) {
         try {
           const url = new URL(ref)
           setBackHref(url.pathname)

@@ -1,7 +1,7 @@
 import { FooterDisclaimer } from "@/components/FooterDisclaimer"
 import type { Metadata } from "next"
 
-export const metadata: Metadata = { title: "Política de Privacidade · Rick Roleta" }
+export const metadata: Metadata = { title: "Política de Privacidade · Área do Jogador" }
 
 export default function PrivacidadePage() {
   return (

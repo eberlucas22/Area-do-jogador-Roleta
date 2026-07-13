@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           className="text-sm font-black tracking-tight"
           style={{ fontFamily: "var(--font-display)", color: "var(--brand-primary)" }}
         >
-          Rick Roleta · Backoffice
+          {process.env.NEXT_PUBLIC_AFFILIATE_NAME ?? "Área do Jogador"} · Backoffice
         </span>
         <span
           className="flex h-7 w-10 items-center justify-center rounded-lg text-xs font-black"

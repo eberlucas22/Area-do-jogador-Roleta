@@ -26,7 +26,7 @@ export default function SuportePage() {
           Suporte
         </h1>
         <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", marginBottom: 0 }}>
-          Fale com o Rick Roleta pelos seus canais oficiais
+          Fale com o afiliado pelos seus canais oficiais
         </p>
       </div>
       <SuporteModule />

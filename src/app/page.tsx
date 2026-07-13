@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
 export default function RootPage() {
-  redirect("/rick-roleta")
+  redirect(`/${process.env.NEXT_PUBLIC_AFFILIATE_SLUG ?? "afiliado"}`)
 }

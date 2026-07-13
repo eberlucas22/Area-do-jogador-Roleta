@@ -1,7 +1,7 @@
 import { FooterDisclaimer } from "@/components/FooterDisclaimer"
 import type { Metadata } from "next"
 
-export const metadata: Metadata = { title: "Termos de Uso · Rick Roleta" }
+export const metadata: Metadata = { title: "Termos de Uso · Área do Jogador" }
 
 export default function TermosPage() {
   return (
@@ -19,7 +19,7 @@ export default function TermosPage() {
             1. Responsável pelo conteúdo
           </h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.7" }}>
-            A Área do Jogador Rick Roleta é uma plataforma de conteúdo educativo sobre gestão de banca e estratégias de roleta.
+            A Área do Jogador é uma plataforma de conteúdo educativo sobre gestão de banca e estratégias de apostas.
             Todo o conteúdo disponibilizado tem caráter informativo e educacional, não constituindo aconselhamento financeiro ou
             garantia de resultados. O acesso é destinado exclusivamente a maiores de 18 anos.
           </p>

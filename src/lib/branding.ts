@@ -10,7 +10,7 @@ export interface BrandingData {
 const DEFAULTS: BrandingData = {
   logoUrl: null,
   logoCompactUrl: null,
-  appName: "Rick Roleta",
+  appName: process.env.NEXT_PUBLIC_AFFILIATE_NAME ?? "Área do Jogador",
 }
 
 export async function fetchBranding(): Promise<BrandingData> {
@@ -35,7 +35,7 @@ export async function fetchBranding(): Promise<BrandingData> {
     return {
       logoUrl,
       logoCompactUrl,
-      appName: data.app_name || "Rick Roleta",
+      appName: data.app_name || process.env.NEXT_PUBLIC_AFFILIATE_NAME || "Área do Jogador",
     }
   } catch {
     return DEFAULTS
