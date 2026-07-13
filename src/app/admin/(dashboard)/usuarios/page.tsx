@@ -1,10 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 import { UsuariosClient } from "./UsuariosClient"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminUsuariosPage() {
   const admin = createAdminClient()
+  const supabase = await createClient()
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
 
   const [authResult, profilesResult, cyclesResult] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
@@ -55,5 +58,5 @@ export default async function AdminUsuariosPage() {
     has_active_cycle: activeUserIds.has(u.id),
   }))
 
-  return <UsuariosClient initialUsers={users} />
+  return <UsuariosClient initialUsers={users} currentUserId={currentUser?.id ?? ""} />
 }
