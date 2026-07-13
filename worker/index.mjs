@@ -32,11 +32,9 @@ function connect() {
 
       console.log(`[worker] Número recebido: ${num}`)
 
-      const { error } = await supabase.rpc("save_roulette_result", {
-        p_channel: CHANNEL,
-        p_number: num,
-        p_multipliers: payload?.multipliers ?? null,
-      })
+      const { error } = await supabase
+        .from("roulette_results")
+        .insert({ channel: CHANNEL, number: num, multipliers: payload?.multipliers ?? null })
 
       if (error) {
         console.error("[worker] Erro ao salvar:", error.message)

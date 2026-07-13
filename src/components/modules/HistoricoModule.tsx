@@ -172,11 +172,9 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
     let channel: ReturnType<typeof supabase.channel> | null = null
 
     async function saveResult(num: number, multipliers: unknown) {
-      await supabase.rpc("save_roulette_result", {
-        p_channel: activeChannel,
-        p_number: num,
-        p_multipliers: multipliers ?? null,
-      })
+      await supabase
+        .from("roulette_results")
+        .insert({ channel: activeChannel, number: num, multipliers: multipliers ?? null })
     }
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
