@@ -168,13 +168,24 @@ export function UsuariosClient({ initialUsers }: { initialUsers: UserRow[] }) {
                   }}
                 >
                   <td style={{ padding: "10px 14px", color: "var(--text-primary)", whiteSpace: "nowrap" }}>
-                    {u.full_name ?? <span style={{ color: "var(--text-muted)" }}>—</span>}
+                    {u.full_name ?? <span style={{ color: "var(--text-muted)" }}>{u.email.split("@")[0]}</span>}
                   </td>
                   <td style={{ padding: "10px 14px", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
                     {u.email}
                   </td>
-                  <td style={{ padding: "10px 14px", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
-                    {u.whatsapp ?? <span style={{ color: "var(--text-muted)" }}>—</span>}
+                  <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
+                    {u.whatsapp ? (
+                      <a
+                        href={`https://wa.me/${u.whatsapp.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#4ade80", fontWeight: 600, textDecoration: "none" }}
+                      >
+                        {u.whatsapp}
+                      </a>
+                    ) : (
+                      <span style={{ color: "var(--text-muted)" }}>—</span>
+                    )}
                   </td>
                   <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
                     {u.marketing_opt_in ? (
