@@ -1,5 +1,4 @@
 import { VideosModule } from "@/components/modules/VideosModule"
-import { BannerCarousel } from "@/components/BannerCarousel"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Vídeos · Área do Jogador" }
@@ -7,7 +6,6 @@ export const metadata: Metadata = { title: "Vídeos · Área do Jogador" }
 export default function VideosPage() {
   return (
     <div>
-      <BannerCarousel section="videos" />
       <div
         style={{
           padding: "20px 16px 8px",

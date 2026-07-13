@@ -1,14 +1,8 @@
 import { BancaModule } from "@/components/modules/BancaModule"
-import { BannerCarousel } from "@/components/BannerCarousel"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Banca · Área do Jogador" }
 
 export default function BancaPage() {
-  return (
-    <>
-      <BannerCarousel section="banca" />
-      <BancaModule />
-    </>
-  )
+  return <BancaModule />
 }

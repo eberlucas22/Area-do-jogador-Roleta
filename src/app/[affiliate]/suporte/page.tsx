@@ -1,5 +1,4 @@
 import { SuporteModule } from "@/components/modules/SuporteModule"
-import { BannerCarousel } from "@/components/BannerCarousel"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Suporte · Área do Jogador" }
@@ -7,7 +6,6 @@ export const metadata: Metadata = { title: "Suporte · Área do Jogador" }
 export default function SuportePage() {
   return (
     <div>
-      <BannerCarousel section="suporte" />
       <div
         style={{
           padding: "20px 16px 8px",

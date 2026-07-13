@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 
-interface Banner {
+export interface BannerItem {
   id: string
   imageUrl: string
   link_url: string | null
@@ -13,14 +12,12 @@ interface Banner {
 
 // ── Variantes ─────────────────────────────────────────────────────────────────
 
-// Centro: só a imagem desliza (lados ficam sempre embaçados, trocam o src instantaneamente)
 const SLIDE_CENTER = {
   enter: (dir: number) => ({ x: dir > 0 ? "60%" : "-60%", opacity: 0 }),
   center: { x: "0%", opacity: 1 },
   exit:  (dir: number) => ({ x: dir > 0 ? "-60%" : "60%", opacity: 0 }),
 }
 
-// Mobile: slide full-width
 const SLIDE_MOBILE = {
   enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%" }),
   center: { x: "0%" },
@@ -31,7 +28,7 @@ const TRANSITION = { type: "tween" as const, duration: 0.55, ease: [0.25, 0.46, 
 
 // ── Painel lateral (sempre embaçado) ─────────────────────────────────────────
 
-function SidePanel({ banner, onClick }: { banner: Banner; onClick: () => void }) {
+function SidePanel({ banner, onClick }: { banner: BannerItem; onClick: () => void }) {
   return (
     <div
       onClick={onClick}
@@ -52,75 +49,38 @@ function SidePanel({ banner, onClick }: { banner: Banner; onClick: () => void })
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
+// Recebe banners via prop (buscados uma única vez no layout server component).
+// Não remonta ao trocar de seção — o carrossel mantém posição e timer.
 
-export function BannerCarousel({ section }: { section: string }) {
-  const [banners, setBanners] = useState<Banner[] | null>(null)
+export function BannerCarousel({ banners }: { banners: BannerItem[] }) {
   const [current, setCurrent] = useState(0)
   const [direction, setDirection] = useState(1)
   const [paused, setPaused] = useState(false)
   const touchStartX = useRef(0)
 
-  useEffect(() => {
-    const supabase = createClient()
-    async function load() {
-      let { data } = await supabase
-        .from("banners")
-        .select("id,image_path,link_url")
-        .eq("is_active", true)
-        .eq("section", section)
-        .order("sort_order")
-
-      if (!data?.length) {
-        const res = await supabase
-          .from("banners")
-          .select("id,image_path,link_url")
-          .eq("is_active", true)
-          .eq("section", "global")
-          .order("sort_order")
-        data = res.data
-      }
-
-      setBanners(
-        (data ?? []).map((b) => ({
-          id: b.id,
-          imageUrl: supabase.storage.from("banners").getPublicUrl(b.image_path).data.publicUrl,
-          link_url: b.link_url,
-        }))
-      )
-    }
-    load()
-  }, [section])
-
   const goNext = useCallback(() => {
     setDirection(1)
-    setCurrent((c) => (c + 1) % (banners?.length ?? 1))
-  }, [banners?.length])
+    setCurrent((c) => (c + 1) % banners.length)
+  }, [banners.length])
 
   const goPrev = useCallback(() => {
     setDirection(-1)
-    setCurrent((c) => (c - 1 + (banners?.length ?? 1)) % (banners?.length ?? 1))
-  }, [banners?.length])
+    setCurrent((c) => (c - 1 + banners.length) % banners.length)
+  }, [banners.length])
 
   useEffect(() => {
-    if (!banners || banners.length < 2 || paused) return
+    if (banners.length < 2 || paused) return
     const id = setInterval(goNext, 5000)
     return () => clearInterval(id)
-  }, [banners, paused, goNext])
-
-  if (banners === null) {
-    return (
-      <div
-        style={{ aspectRatio: "1600/560", backgroundColor: "var(--bg-elevated)" }}
-        aria-hidden="true"
-      />
-    )
-  }
+  }, [banners.length, paused, goNext])
 
   if (banners.length === 0) return null
 
-  const prevIdx = (current - 1 + banners.length) % banners.length
-  const nextIdx = (current + 1) % banners.length
-  const curr = banners[current]
+  // Reset current if out of bounds (e.g. banner removed in admin)
+  const safeIdx = current % banners.length
+  const prevIdx = (safeIdx - 1 + banners.length) % banners.length
+  const nextIdx = (safeIdx + 1) % banners.length
+  const curr = banners[safeIdx]
 
   const hoverProps = {
     onMouseEnter: () => setPaused(true),
@@ -151,10 +111,8 @@ export function BannerCarousel({ section }: { section: string }) {
         style={{ width: "100%", gap: "8px", alignItems: "stretch" }}
         {...hoverProps}
       >
-        {/* Lado esquerdo — sempre embaçado, troca src instantaneamente */}
         <SidePanel banner={banners[prevIdx]} onClick={goPrev} />
 
-        {/* Centro — só a imagem desliza */}
         <div
           style={{
             flex: 1,
@@ -188,7 +146,6 @@ export function BannerCarousel({ section }: { section: string }) {
           </AnimatePresence>
         </div>
 
-        {/* Lado direito — sempre embaçado, troca src instantaneamente */}
         <SidePanel banner={banners[nextIdx]} onClick={goNext} />
       </div>
 
@@ -214,7 +171,7 @@ export function BannerCarousel({ section }: { section: string }) {
       >
         <AnimatePresence mode="sync" custom={direction} initial={false}>
           <motion.div
-            key={current}
+            key={safeIdx}
             custom={direction}
             variants={SLIDE_MOBILE}
             initial="enter"
@@ -244,13 +201,13 @@ export function BannerCarousel({ section }: { section: string }) {
           {banners.map((_, i) => (
             <button
               key={i}
-              onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i) }}
+              onClick={() => { setDirection(i > safeIdx ? 1 : -1); setCurrent(i) }}
               aria-label={`Slide ${i + 1}`}
               style={{
-                width: i === current ? "22px" : "7px",
+                width: i === safeIdx ? "22px" : "7px",
                 height: "7px",
                 borderRadius: "99px",
-                backgroundColor: i === current ? "var(--brand-primary)" : "rgba(255,255,255,0.45)",
+                backgroundColor: i === safeIdx ? "var(--brand-primary)" : "rgba(255,255,255,0.45)",
                 border: "none",
                 cursor: "pointer",
                 padding: 0,
