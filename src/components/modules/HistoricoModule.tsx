@@ -217,7 +217,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
       }
       channelRef.current = null
     }
-  }, [slug, activeChannel])
+  }, [slug, activeChannel, selectedGame?.id])
 
   const lastNumber = sequence[0] ?? null
   const last5 = sequence.slice(1, 6)
