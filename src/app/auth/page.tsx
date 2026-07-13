@@ -23,6 +23,33 @@ function isValidWhatsApp(v: string): boolean {
   return digits.length >= 10 && digits.length <= 11
 }
 
+function isValidEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+}
+
+function translateAuthError(message: string): string {
+  const msg = message.toLowerCase()
+  if (msg.includes("rate limit") || msg.includes("over_email") || msg.includes("too many")) {
+    return "Muitos e-mails enviados. Aguarde alguns minutos e tente novamente."
+  }
+  if (msg.includes("already registered") || msg.includes("user already")) {
+    return "Este e-mail já está cadastrado."
+  }
+  if ((msg.includes("invalid") && msg.includes("email")) || msg.includes("unable to validate email")) {
+    return "E-mail inválido. Verifique e tente novamente."
+  }
+  if (msg.includes("password") && (msg.includes("short") || msg.includes("weak") || msg.includes("characters"))) {
+    return "Senha muito fraca. Use pelo menos 8 caracteres."
+  }
+  if (msg.includes("signup") && msg.includes("disabled")) {
+    return "Cadastros temporariamente desativados. Tente mais tarde."
+  }
+  if (msg.includes("network") || msg.includes("fetch")) {
+    return "Erro de conexão. Verifique sua internet e tente novamente."
+  }
+  return "Ocorreu um erro inesperado. Tente novamente."
+}
+
 // ─── Inner component (uses useSearchParams) ───────────────────────────────────
 function AuthForm() {
   const router = useRouter()
@@ -76,9 +103,19 @@ function AuthForm() {
   async function handleResend() {
     if (!confirmationSent || resendCooldown > 0) return
     setResendLoading(true)
-    await supabase.auth.resend({ type: "signup", email: confirmationSent })
+    const { error } = await supabase.auth.resend({ type: "signup", email: confirmationSent })
     setResendLoading(false)
+    if (error) {
+      const msg = error.message.toLowerCase()
+      if (msg.includes("rate limit") || msg.includes("too many")) {
+        showToast("Aguarde alguns minutos antes de reenviar.", "error")
+      } else {
+        showToast(translateAuthError(error.message), "error")
+      }
+      return
+    }
     setResendCooldown(60)
+    showToast("E-mail reenviado! Verifique sua caixa de entrada.", "success")
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -87,6 +124,7 @@ function AuthForm() {
 
     if (!fullName.trim()) errs.fullName = "Nome obrigatório."
     if (!email.trim()) errs.email = "E-mail obrigatório."
+    else if (!isValidEmail(email)) errs.email = "E-mail inválido. Ex: seu@email.com"
     if (!isValidWhatsApp(whatsapp)) errs.whatsapp = "DDD + número inválido. Ex: (11) 99999-9999"
     if (password.length < 8) errs.password = "Mínimo 8 caracteres."
     if (!termsAccepted) errs.terms = "Você precisa aceitar os Termos para continuar."
@@ -116,10 +154,13 @@ function AuthForm() {
     })
 
     if (error) {
-      if (error.message.toLowerCase().includes("already")) {
-        setErrors({ email: "Este e-mail já está em uso." })
+      const msg = error.message.toLowerCase()
+      if (msg.includes("already registered") || msg.includes("user already") || msg.includes("already")) {
+        setErrors({ email: "Este e-mail já está cadastrado. Tente entrar." })
+      } else if (msg.includes("invalid") && msg.includes("email")) {
+        setErrors({ email: "E-mail inválido. Verifique e tente novamente." })
       } else {
-        setGeneralError(error.message)
+        setGeneralError(translateAuthError(error.message))
       }
       setLoading(false)
       return
@@ -151,10 +192,13 @@ function AuthForm() {
       const msg = error.message.toLowerCase()
       if (msg.includes("email not confirmed") || msg.includes("not confirmed")) {
         setConfirmationSent(loginEmail)
-        setLoading(false)
-        return
+      } else if (msg.includes("rate limit") || msg.includes("too many")) {
+        setGeneralError("Muitas tentativas. Aguarde alguns minutos e tente novamente.")
+      } else if (msg.includes("invalid") && msg.includes("email")) {
+        setGeneralError("E-mail inválido. Verifique e tente novamente.")
+      } else {
+        setGeneralError("E-mail ou senha incorretos.")
       }
-      setGeneralError("E-mail ou senha incorretos.")
       setLoading(false)
       return
     }
@@ -167,11 +211,19 @@ function AuthForm() {
       setGeneralError("Digite seu e-mail acima antes de redefinir a senha.")
       return
     }
+    if (!isValidEmail(loginEmail)) {
+      setGeneralError("E-mail inválido. Verifique e tente novamente.")
+      return
+    }
     setGeneralError("")
     const origin = window.location.origin
-    await supabase.auth.resetPasswordForEmail(loginEmail, {
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
       redirectTo: `${origin}/auth?mode=reset`,
     })
+    if (error) {
+      setGeneralError(translateAuthError(error.message))
+      return
+    }
     setResetSent(true)
   }
 
