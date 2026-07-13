@@ -40,12 +40,6 @@ function getColor(n: number): "red" | "black" | "green" {
   return RED_NUMBERS.has(n) ? "red" : "black"
 }
 
-const MOCK_SEQUENCE = [
-  17, 5, 32, 0, 14, 27, 11, 36, 2, 25, 8, 19, 34, 6, 21, 15, 30, 3, 24, 9, 18, 33, 12, 7, 26, 1,
-  16, 31, 4, 23, 10, 35, 20, 13, 28, 5, 22, 17, 0, 36, 15, 8, 29, 4, 21, 12, 33, 6, 27, 18, 3, 24,
-  11, 32, 7, 16, 25, 36, 2, 19, 14, 31, 10, 23, 0, 35, 8, 17, 28, 5, 22, 13, 30, 1, 20, 9, 34, 3,
-  26, 15, 11, 24, 7, 36, 18, 29, 4, 21, 12, 33, 6, 27, 0, 14, 25, 8, 31, 16, 5, 22,
-]
 
 const COLOR_MAP = {
   red:   { fill: "#b91c1c", badge: "rgba(185,28,28,0.85)", text: "white" },
@@ -131,8 +125,8 @@ function sameGameId(selected: Game | null, candidate: Game): boolean {
 }
 
 export function HistoricoModule({ slug }: HistoricoModuleProps) {
-  const [sequence, setSequence] = useState<number[]>(MOCK_SEQUENCE)
-  const [isMock, setIsMock] = useState(true)
+  const [sequence, setSequence] = useState<number[]>([])
+  const [isMock, setIsMock] = useState(false)
   const [loading, setLoading] = useState(true)
   const [live, setLive] = useState(false)
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
@@ -171,19 +165,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
     const supabase = createClient()
     let channel: ReturnType<typeof supabase.channel> | null = null
 
-    async function saveResult(num: number, multipliers: unknown) {
-      await supabase
-        .from("roulette_results")
-        .insert({ channel: activeChannel, number: num, multipliers: multipliers ?? null })
-    }
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (cancelled) return
-      if (!session) {
-        setLoading(false)
-        return
-      }
-
+    async function init() {
       const { data } = await supabase
         .from("roulette_results")
         .select("number")
@@ -195,10 +177,6 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
 
       if (data && data.length > 0) {
         setSequence(data.map((r: { number: number }) => r.number))
-        setIsMock(false)
-      } else {
-        setSequence(MOCK_SEQUENCE)
-        setIsMock(true)
       }
       setLoading(false)
 
@@ -219,14 +197,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
             if (typeof num !== "number" || num < 0 || num > 36) return
 
             setLive(true)
-            setIsMock(false)
-            setSequence((prev) => {
-              const wasDemo = prev === MOCK_SEQUENCE
-              const base = wasDemo ? [] : prev
-              return [num, ...base].slice(0, 500)
-            })
-
-            saveResult(num, payload?.multipliers)
+            setSequence((prev) => [num, ...prev].slice(0, 500))
           }
         )
         .subscribe((status) => {
@@ -234,7 +205,9 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
         })
 
       channelRef.current = channel
-    })
+    }
+
+    init()
 
     return () => {
       cancelled = true
@@ -379,7 +352,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
         {sequence.length > 0 && (
           <div className="rounded-3xl p-5" style={{ backgroundColor: "var(--surface-1)" }}>
             <p className="label-caps mb-4">
-              Últimos {viewLimit} números {isMock && <span style={{ color: "var(--brand-secondary)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>· Demonstração</span>}
+              Últimos {viewLimit} números
             </p>
             <div className="flex flex-wrap gap-1.5">
               {lastN.map((r, i) => (
@@ -552,8 +525,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
               <button
                 onClick={() => {
                   setSelectedGame(game)
-                  setSequence(MOCK_SEQUENCE)
-                  setIsMock(true)
+                  setSequence([])
                   setLive(false)
                   setChannelStatus("CONNECTING")
                   setViewLimit(50)
@@ -570,7 +542,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
                 <span>Ver histórico e estatísticas</span>
                 <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 400 }}>
                   {game.id === gameList[0]?.id && !selectedGame
-                    ? (isMock ? "Demonstração" : `${sequence.length} rodadas`)
+                    ? `${sequence.length} rodadas`
                     : ""}
                 </span>
               </button>
