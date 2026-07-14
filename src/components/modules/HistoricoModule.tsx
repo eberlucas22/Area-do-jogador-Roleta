@@ -135,6 +135,7 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
   const [gameList, setGameList] = useState<Game[]>([])
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null)
   const sequenceRef = useRef<number[]>([])
+  const lastBroadcastTimeRef = useRef<number>(0)
 
   useEffect(() => { sequenceRef.current = sequence }, [sequence])
 
@@ -195,6 +196,11 @@ export function HistoricoModule({ slug }: HistoricoModuleProps) {
             const payload = (msg as any)?.payload
             const num = payload?.result
             if (typeof num !== "number" || num < 0 || num > 36) return
+
+            // Dedup: ignorar eventos recebidos dentro de 10s do anterior
+            const now = Date.now()
+            if (now - lastBroadcastTimeRef.current < 10_000) return
+            lastBroadcastTimeRef.current = now
 
             setLive(true)
             setSequence((prev) => [num, ...prev].slice(0, 500))
