@@ -77,8 +77,13 @@ function AuthForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [generalError, setGeneralError] = useState("")
 
-  // Email confirmation state
-  const [confirmationSent, setConfirmationSent] = useState<string | null>(null)
+  const CONFIRM_KEY = "auth_pending_email"
+
+  // Email confirmation state — inicializa do sessionStorage para sobreviver a recargas
+  const [confirmationSent, setConfirmationSentState] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null
+    return sessionStorage.getItem(CONFIRM_KEY)
+  })
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
   const [emailConfirmed, setEmailConfirmed] = useState(false)
@@ -86,6 +91,12 @@ function AuthForm() {
 
   const supabase = createClient()
   const { appName } = useBranding()
+
+  function setConfirmationSent(email: string | null) {
+    setConfirmationSentState(email)
+    if (email) sessionStorage.setItem(CONFIRM_KEY, email)
+    else sessionStorage.removeItem(CONFIRM_KEY)
+  }
 
   // Countdown for resend button
   useEffect(() => {
@@ -101,22 +112,25 @@ function AuthForm() {
 
     if (failed) {
       setGeneralError("Link de confirmação inválido ou expirado. Solicite um novo e-mail.")
+      sessionStorage.removeItem(CONFIRM_KEY)
       setTab("login")
       return
     }
 
     if (confirmed) {
+      sessionStorage.removeItem(CONFIRM_KEY)
       setEmailConfirmed(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Verifica sessão e redireciona (usado tanto na tela de confirmado quanto no botão "já confirmei")
+  // Verifica sessão e redireciona
   async function handleProceedAfterConfirm() {
     setCheckingSession(true)
     const { data: { session } } = await supabase.auth.getSession()
     setCheckingSession(false)
     if (session) {
+      sessionStorage.removeItem(CONFIRM_KEY)
       showToast("Bem-vindo!", "success")
       router.push(nextUrl)
     } else {
