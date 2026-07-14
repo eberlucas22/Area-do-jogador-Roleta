@@ -81,6 +81,8 @@ function AuthForm() {
   const [confirmationSent, setConfirmationSent] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
+  const [emailConfirmed, setEmailConfirmed] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(false)
 
   const supabase = createClient()
   const { appName } = useBranding()
@@ -92,7 +94,7 @@ function AuthForm() {
     return () => clearTimeout(timer)
   }, [resendCooldown])
 
-  // Após confirmação de e-mail: detecta sessão ativa e redireciona pro app
+  // Detecta retorno do link de confirmação
   useEffect(() => {
     const confirmed = searchParams.get("confirmed") === "true"
     const failed = searchParams.get("error") === "confirmation_failed"
@@ -104,18 +106,26 @@ function AuthForm() {
     }
 
     if (confirmed) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          showToast("E-mail confirmado, bem-vindo!", "success")
-          router.push(nextUrl)
-        } else {
-          showToast("E-mail confirmado! Faça login para continuar.", "success")
-          setTab("login")
-        }
-      })
+      setEmailConfirmed(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Verifica sessão e redireciona (usado tanto na tela de confirmado quanto no botão "já confirmei")
+  async function handleProceedAfterConfirm() {
+    setCheckingSession(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    setCheckingSession(false)
+    if (session) {
+      showToast("Bem-vindo!", "success")
+      router.push(nextUrl)
+    } else {
+      setEmailConfirmed(false)
+      setConfirmationSent(null)
+      setTab("login")
+      showToast("E-mail confirmado! Faça login para continuar.", "success")
+    }
+  }
 
   async function handleResend() {
     if (!confirmationSent || resendCooldown > 0) return
@@ -312,8 +322,29 @@ function AuthForm() {
             boxShadow: "var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.06)",
           }}
         >
-          {/* ── Email confirmation screen ── */}
-          {confirmationSent !== null ? (
+          {/* ── Tela: e-mail confirmado com sucesso ── */}
+          {emailConfirmed ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px", textAlign: "center" }}>
+              <div>
+                <div style={{ fontSize: "56px", marginBottom: "16px", lineHeight: 1 }}>✅</div>
+                <h2 style={{ fontSize: "22px", fontWeight: 900, color: "var(--text-primary)", fontFamily: "var(--font-display)", margin: "0 0 10px" }}>
+                  E-mail confirmado!
+                </h2>
+                <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  Sua conta está ativa. Clique abaixo para acessar o app.
+                </p>
+              </div>
+              <button
+                onClick={handleProceedAfterConfirm}
+                disabled={checkingSession}
+                style={{ ...btnBase, opacity: checkingSession ? 0.7 : 1, cursor: checkingSession ? "not-allowed" : "pointer" }}
+              >
+                {checkingSession ? "Verificando…" : "Acessar o app →"}
+              </button>
+            </div>
+
+          ) : confirmationSent !== null ? (
+            /* ── Tela: aguardando confirmação ── */
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "48px", marginBottom: "16px", lineHeight: 1 }}>✉️</div>
@@ -328,10 +359,20 @@ function AuthForm() {
               </div>
 
               <button
+                onClick={handleProceedAfterConfirm}
+                disabled={checkingSession}
+                style={{ ...btnBase, opacity: checkingSession ? 0.7 : 1, cursor: checkingSession ? "not-allowed" : "pointer" }}
+              >
+                {checkingSession ? "Verificando…" : "✅ Já confirmei meu e-mail"}
+              </button>
+
+              <button
                 onClick={handleResend}
                 disabled={resendLoading || resendCooldown > 0}
                 style={{
                   ...btnBase,
+                  backgroundColor: "var(--surface-3)",
+                  color: "var(--text-secondary)",
                   opacity: resendLoading || resendCooldown > 0 ? 0.6 : 1,
                   cursor: resendLoading || resendCooldown > 0 ? "not-allowed" : "pointer",
                 }}
@@ -346,14 +387,9 @@ function AuthForm() {
               <button
                 onClick={() => setConfirmationSent(null)}
                 style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                  fontSize: "13px",
-                  textAlign: "center",
-                  padding: "4px",
-                  textDecoration: "underline",
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "var(--text-muted)", fontSize: "13px",
+                  textAlign: "center", padding: "4px", textDecoration: "underline",
                 }}
               >
                 Usar outro e-mail
@@ -575,6 +611,7 @@ function AuthForm() {
           )}
         </div>
       </div>
+
 
       <FooterDisclaimer />
     </div>
