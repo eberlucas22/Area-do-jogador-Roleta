@@ -1,90 +1,113 @@
 <!DOCTYPE html>
-<!--
-  TEMPLATE: Confirmação de Cadastro
-  Assunto sugerido: "Confirme seu e-mail — Rick Roleta"
-
-  COMO INSTALAR NO SUPABASE:
-  1. Acesse o Supabase Dashboard → Authentication → Email Templates
-  2. Selecione "Confirm signup"
-  3. Copie o conteúdo HTML abaixo e cole no campo "Body"
-  4. No campo "Subject", use: Confirme seu e-mail — Rick Roleta
-  5. Clique em "Save"
-  6. Certifique-se de que "Enable email confirmations" está ativado em
-     Authentication → Providers → Email
--->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Confirme seu e-mail</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:32px 16px;">
-    <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <!--
+  ══════════════════════════════════════════════════════════════
+  TEMPLATE DE E-MAIL — CONFIRMAÇÃO DE CONTA
+  ══════════════════════════════════════════════════════════════
 
-          <!-- Header / Logo -->
+  COMO USAR NO SUPABASE:
+  1. Acesse: Supabase Dashboard → Authentication → Email Templates
+  2. Selecione "Confirm signup"
+  3. Cole o conteúdo HTML ABAIXO (a partir da tag <html>) no campo "Message (HTML)"
+  4. Defina o Subject como: Confirme seu e-mail — Rick Roleta
+  5. Salve as alterações
+
+  VARIÁVEL OBRIGATÓRIA:
+  - {{ .ConfirmationURL }} — gerada automaticamente pelo Supabase com o link de confirmação
+
+  VARIÁVEL DE SITE URL (Vercel → Environment Variables):
+  - NEXT_PUBLIC_SITE_URL=https://apprickroleta.com.br
+  ══════════════════════════════════════════════════════════════
+  -->
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f4f4;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+
+        <!-- Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header roxo -->
           <tr>
-            <td style="background-color:#1A1030;padding:28px 32px;text-align:center;">
-              <!-- Substitua pela URL do seu logo -->
-              <p style="margin:0;font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.02em;">
-                🎰 Rick Roleta
+            <td align="center" style="background:linear-gradient(135deg,#1a0a2e 0%,#2d0d4e 100%);padding:36px 32px 28px;">
+              <!-- Logo — substitua pelo URL da sua logo hospedada -->
+              <img
+                src="https://apprickroleta.com.br/logo.png"
+                alt="Rick Roleta"
+                width="140"
+                style="display:block;margin:0 auto 0;max-height:52px;width:auto;object-fit:contain;"
+                onerror="this.style.display='none'"
+              />
+              <p style="margin:16px 0 0;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:0.06em;text-transform:uppercase;">
+                Área do Jogador
               </p>
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Conteúdo -->
           <tr>
-            <td style="padding:36px 32px 28px;">
-              <h1 style="margin:0 0 16px;font-size:24px;font-weight:800;color:#1a1a2e;line-height:1.2;">
+            <td style="padding:36px 40px 28px;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#1a0a2e;line-height:1.2;">
                 Confirme seu e-mail
               </h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.6;">
-                Olá! Sua conta no Rick Roleta foi criada com sucesso.<br />
-                Clique no botão abaixo para ativar sua conta e acessar o conteúdo exclusivo.
+              <p style="margin:0 0 24px;font-size:15px;color:#555555;line-height:1.7;">
+                Olá! Para ativar sua conta na <strong>Área do Jogador</strong> e ter acesso ao conteúdo exclusivo, clique no botão abaixo para confirmar seu endereço de e-mail.
               </p>
 
-              <!-- CTA Button -->
-              <table cellpadding="0" cellspacing="0" width="100%">
+              <!-- Botão CTA -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
                 <tr>
-                  <td align="center" style="padding:8px 0 28px;">
-                    <a href="{{ .ConfirmationURL }}"
-                       style="display:inline-block;padding:14px 36px;background-color:#8b2fd4;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.01em;">
+                  <td align="center" style="border-radius:12px;background:#8b2fd4;">
+                    <a
+                      href="{{ .ConfirmationURL }}"
+                      target="_blank"
+                      style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;letter-spacing:0.01em;"
+                    >
                       Confirmar meu e-mail
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- Expiry note -->
-              <p style="margin:0 0 12px;font-size:13px;color:#888888;text-align:center;">
-                ⏱ Este link expira em <strong>24 horas</strong>.
+              <!-- Aviso de expiração -->
+              <p style="margin:0 0 16px;font-size:13px;color:#888888;line-height:1.6;">
+                ⏰ <strong>Este link expira em 24 horas.</strong> Caso não tenha criado uma conta, ignore este e-mail.
               </p>
-              <p style="margin:0;font-size:12px;color:#aaaaaa;text-align:center;">
-                Se você não criou uma conta, ignore este e-mail.
+
+              <!-- Fallback link -->
+              <p style="margin:0;font-size:12px;color:#aaaaaa;line-height:1.6;word-break:break-all;">
+                Se o botão não funcionar, copie e cole este link no navegador:<br />
+                <a href="{{ .ConfirmationURL }}" style="color:#8b2fd4;">{{ .ConfirmationURL }}</a>
               </p>
             </td>
           </tr>
 
-          <!-- Divider -->
+          <!-- Divisor -->
           <tr>
-            <td style="padding:0 32px;">
+            <td style="padding:0 40px;">
               <hr style="border:none;border-top:1px solid #eeeeee;margin:0;" />
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Rodapé -->
           <tr>
-            <td style="padding:20px 32px;text-align:center;">
-              <p style="margin:0;font-size:11px;color:#aaaaaa;line-height:1.6;">
+            <td style="padding:20px 40px 32px;">
+              <p style="margin:0;font-size:11px;color:#aaaaaa;line-height:1.7;text-align:center;">
                 Conteúdo exclusivo para maiores de 18 anos. Jogue com responsabilidade.<br />
-                Rick Roleta · Área do Jogador
+                Apostas podem causar dependência — em caso de ajuda, acesse o
+                <a href="https://www.jogo-responsavel.com.br" style="color:#8b2fd4;text-decoration:none;">Jogo Responsável</a>.
               </p>
             </td>
           </tr>
 
         </table>
+        <!-- /Card -->
+
       </td>
     </tr>
   </table>
