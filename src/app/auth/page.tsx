@@ -137,13 +137,12 @@ function AuthForm() {
     setGeneralError("")
     setLoading(true)
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
     const whatsappE164 = "+55" + whatsapp.replace(/\D/g, "")
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           full_name: fullName.trim(),
           whatsapp: whatsappE164,
