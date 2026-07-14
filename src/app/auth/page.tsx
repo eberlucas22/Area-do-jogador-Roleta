@@ -92,10 +92,27 @@ function AuthForm() {
     return () => clearTimeout(timer)
   }, [resendCooldown])
 
-  // Show toast when redirected back after email confirmation
+  // Após confirmação de e-mail: detecta sessão ativa e redireciona pro app
   useEffect(() => {
-    if (searchParams.get("confirmed") === "true") {
-      showToast("E-mail confirmado, bem-vindo!", "success")
+    const confirmed = searchParams.get("confirmed") === "true"
+    const failed = searchParams.get("error") === "confirmation_failed"
+
+    if (failed) {
+      setGeneralError("Link de confirmação inválido ou expirado. Solicite um novo e-mail.")
+      setTab("login")
+      return
+    }
+
+    if (confirmed) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          showToast("E-mail confirmado, bem-vindo!", "success")
+          router.push(nextUrl)
+        } else {
+          showToast("E-mail confirmado! Faça login para continuar.", "success")
+          setTab("login")
+        }
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
