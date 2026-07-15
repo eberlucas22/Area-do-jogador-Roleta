@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server"
+import { unstable_cache } from "next/cache"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { MessageCircle, Send, Camera, PlayCircle, ExternalLink } from "lucide-react"
 
 interface SupportChannel {
@@ -8,6 +9,7 @@ interface SupportChannel {
   url: string
   image_path: string | null
   description: string | null
+  imageUrl: string | null
 }
 
 function ChannelIcon({ type }: { type: string }) {
@@ -36,22 +38,40 @@ function channelTypeLabel(type: string): string {
   }
 }
 
-// WhatsApp and Telegram go first
 function channelPriority(type: string): number {
   if (type === "whatsapp") return 0
   if (type === "telegram") return 1
   return 2
 }
 
-export async function SuporteModule() {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("support_channels")
-    .select("id,name,channel_type,url,image_path,description")
-    .eq("is_active", true)
-    .order("sort_order")
+// Cache 60s — dados de suporte raramente mudam.
+const getChannels = unstable_cache(
+  async (): Promise<SupportChannel[]> => {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from("support_channels")
+      .select("id,name,channel_type,url,image_path,description")
+      .eq("is_active", true)
+      .order("sort_order")
 
-  if (!data || data.length === 0) {
+    if (!data || data.length === 0) return []
+
+    const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    return data.map((ch) => ({
+      ...ch,
+      imageUrl: ch.image_path
+        ? `${baseUrl}/storage/v1/object/public/support/${ch.image_path}`
+        : null,
+    }))
+  },
+  ["support-channels"],
+  { revalidate: 60 }
+)
+
+export async function SuporteModule() {
+  const data = await getChannels()
+
+  if (data.length === 0) {
     return (
       <div style={{ padding: "48px 16px", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
         Nenhum canal de suporte cadastrado ainda.
@@ -59,7 +79,7 @@ export async function SuporteModule() {
     )
   }
 
-  const channels = [...(data as SupportChannel[])].sort(
+  const channels = [...data].sort(
     (a, b) => channelPriority(a.channel_type) - channelPriority(b.channel_type)
   )
 
@@ -67,10 +87,6 @@ export async function SuporteModule() {
     <div style={{ padding: "24px 16px", maxWidth: "600px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {channels.map((ch, idx) => {
-          const imageUrl = ch.image_path
-            ? supabase.storage.from("support").getPublicUrl(ch.image_path).data.publicUrl
-            : null
-
           const isFirst = idx === 0
 
           return (
@@ -93,7 +109,6 @@ export async function SuporteModule() {
                   : "var(--shadow-sm)",
               }}
             >
-              {/* Icon or custom image */}
               <div
                 style={{
                   width: "52px",
@@ -107,15 +122,14 @@ export async function SuporteModule() {
                   overflow: "hidden",
                 }}
               >
-                {imageUrl ? (
+                {ch.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imageUrl} alt={ch.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={ch.imageUrl} alt={ch.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   <ChannelIcon type={ch.channel_type} />
                 )}
               </div>
 
-              {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p
                   style={{
@@ -149,7 +163,6 @@ export async function SuporteModule() {
                 )}
               </div>
 
-              {/* CTA */}
               {isFirst ? (
                 <span
                   style={{

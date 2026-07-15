@@ -201,6 +201,16 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
   border-radius: var(--radius-md);
 }
 
+/* Nav tap — press feedback instantâneo no mobile */
+.nav-tap {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 60ms ease, opacity 60ms ease;
+}
+.nav-tap:active {
+  transform: scale(0.82);
+  opacity: 0.6;
+}
+
 /* Dot pulsante (live indicator) */
 @keyframes dot-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

@@ -206,6 +206,7 @@ function MobileNavItem({
   return (
     <Link
       href={href}
+      className="nav-tap"
       style={{
         flex: 1,
         display: "flex",
@@ -219,7 +220,7 @@ function MobileNavItem({
         minWidth: 0,
         minHeight: "44px",
         alignSelf: "stretch",
-        transition: "color 150ms",
+        transition: "color 150ms, transform 60ms ease, opacity 60ms ease",
       }}
     >
       <Icon size={20} />
