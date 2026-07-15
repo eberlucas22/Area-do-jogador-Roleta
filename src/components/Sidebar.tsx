@@ -115,7 +115,7 @@ function PlatformCard({ p }: { p: Platform }) {
             whiteSpace: "nowrap",
           }}
         >
-          Conhecer
+          Cadastre-se
         </a>
       )}
     </div>
