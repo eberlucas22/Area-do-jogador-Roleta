@@ -210,15 +210,35 @@ export default function AdminHistoricoPage() {
               style={inputStyle}
             />
           </label>
-          <label style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-            Imagem (JPG/PNG/WebP, máx 5 MB — opcional)
+          <div>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>Imagem (JPG/PNG/WebP, máx 5 MB — opcional)</p>
             <input
               ref={fileRef}
               type="file"
               accept={ACCEPTED}
-              style={{ display: "block", marginTop: "6px", fontSize: "13px", color: "var(--text-primary)" }}
+              style={{ display: "none" }}
             />
-          </label>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px dashed var(--border-muted)",
+                backgroundColor: "var(--bg-elevated)",
+                color: "var(--text-secondary)",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Upload size={14} />
+              Selecionar imagem
+            </button>
+          </div>
 
           {error && <p style={{ color: "#f87171", fontSize: "13px" }}>{error}</p>}
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Edit2, Check, X } from "lucide-react"
+import { Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Edit2, Check, X, Upload } from "lucide-react"
 
 interface Channel {
   id: string
@@ -200,16 +200,36 @@ export default function AdminSuportePage() {
             URL / Link *
             <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." style={inputStyle} />
           </label>
-          <label style={{ fontSize: "12px", color: "var(--text-muted)", gridColumn: "1/-1" }}>
-            Imagem customizada (opcional)
+          <div style={{ gridColumn: "1/-1" }}>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>Imagem customizada (opcional)</p>
             <input
               ref={fileRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
               onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-              style={{ display: "block", marginTop: "4px", fontSize: "13px", color: "var(--text-primary)" }}
             />
-          </label>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px dashed var(--border-muted)",
+                backgroundColor: "var(--bg-elevated)",
+                color: "var(--text-secondary)",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Upload size={14} />
+              {imageFile ? imageFile.name : "Selecionar imagem"}
+            </button>
+          </div>
         </div>
         {error && <p style={{ color: "#f87171", fontSize: "13px", marginTop: "8px" }}>{error}</p>}
         <button

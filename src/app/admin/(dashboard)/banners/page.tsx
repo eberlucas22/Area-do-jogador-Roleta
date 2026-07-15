@@ -161,19 +161,43 @@ export default function AdminBannersPage() {
           Adicionar banner
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <label style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-            Imagem (JPG/PNG/WebP, máx 5 MB — proporção recomendada 1600×560)
+          <div>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
+              Imagem (JPG/PNG/WebP, máx 5 MB — proporção recomendada 1600×560)
+            </p>
             <input
               ref={fileRef}
               type="file"
               accept={ACCEPTED}
-              style={{ display: "block", marginTop: "6px", fontSize: "13px", color: "var(--text-primary)" }}
+              style={{ display: "none" }}
               onChange={(e) => {
                 const f = e.target.files?.[0]
                 if (f) handleUpload(f)
               }}
             />
-          </label>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px dashed var(--border-muted)",
+                backgroundColor: "var(--bg-elevated)",
+                color: "var(--text-secondary)",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: uploading ? "not-allowed" : "pointer",
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
+              <Upload size={14} />
+              Selecionar imagem
+            </button>
+          </div>
           <label style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             Link (opcional — abre em nova aba ao clicar)
             <input

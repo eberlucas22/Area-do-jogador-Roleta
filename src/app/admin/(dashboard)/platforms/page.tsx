@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Plus, X } from "lucide-react"
+import { Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Plus, X, Upload } from "lucide-react"
 
 interface Platform {
   id: string
@@ -31,6 +31,7 @@ export default function AdminPlatformsPage() {
   const [form, setForm] = useState(blankForm)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const logoFileRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
 
   function getSupabase() { return createClient() }
@@ -178,15 +179,36 @@ export default function AdminPlatformsPage() {
             Cor de destaque (hex opcional)
             <input type="text" value={form.accent_color} onChange={(e) => setForm({ ...form, accent_color: e.target.value })} placeholder="#8b2fd4" style={inputStyle} />
           </label>
-          <label style={{ fontSize: "12px", color: "var(--text-muted)", gridColumn: "1/-1" }}>
-            Logo (PNG/JPG, máx 1 MB)
+          <div style={{ gridColumn: "1/-1" }}>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>Logo (PNG/JPG, máx 1 MB)</p>
             <input
+              ref={logoFileRef}
               type="file"
               accept="image/jpeg,image/png,image/webp,image/svg+xml"
+              style={{ display: "none" }}
               onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
-              style={{ display: "block", marginTop: "4px", fontSize: "13px", color: "var(--text-primary)" }}
             />
-          </label>
+            <button
+              type="button"
+              onClick={() => logoFileRef.current?.click()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px dashed var(--border-muted)",
+                backgroundColor: "var(--bg-elevated)",
+                color: "var(--text-secondary)",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Upload size={14} />
+              {logoFile ? logoFile.name : "Selecionar logo"}
+            </button>
+          </div>
         </div>
 
         {/* Benefits */}
