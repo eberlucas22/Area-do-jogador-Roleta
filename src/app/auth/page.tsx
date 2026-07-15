@@ -105,13 +105,14 @@ function AuthForm() {
     return () => clearTimeout(timer)
   }, [resendCooldown])
 
-  // Detecta retorno do link de confirmação
+  // Detecta retorno do link de confirmação — usa window.location.search (mais confiável que useSearchParams no hydration)
   useEffect(() => {
-    const confirmed = searchParams.get("confirmed") === "true"
-    const failed = searchParams.get("error") === "confirmation_failed"
+    const params = new URLSearchParams(window.location.search)
+    const confirmed = params.get("confirmed") === "true"
+    const failed = params.get("error") === "confirmation_failed"
 
     if (failed) {
-      setGeneralError("Link de confirmação inválido ou expirado. Solicite um novo e-mail.")
+      showToast("Link inválido ou expirado. Solicite um novo e-mail.", "error")
       sessionStorage.removeItem(CONFIRM_KEY)
       setTab("login")
       return
@@ -345,7 +346,7 @@ function AuthForm() {
                   E-mail confirmado!
                 </h2>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                  Sua conta está ativa. Clique abaixo para acessar o app.
+                  Sua conta está ativa. Clique abaixo para fazer login e acessar o app.
                 </p>
               </div>
               <button
@@ -353,7 +354,13 @@ function AuthForm() {
                 disabled={checkingSession}
                 style={{ ...btnBase, opacity: checkingSession ? 0.7 : 1, cursor: checkingSession ? "not-allowed" : "pointer" }}
               >
-                {checkingSession ? "Verificando…" : "Acessar o app →"}
+                {checkingSession ? "Verificando…" : "Entrar no app →"}
+              </button>
+              <button
+                onClick={() => { setEmailConfirmed(false); setTab("login") }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "13px", textDecoration: "underline" }}
+              >
+                Fazer login manualmente
               </button>
             </div>
 
